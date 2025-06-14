@@ -1,0 +1,28 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "AI智能日程管理应用"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "AI智能日程助手主界面"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "AI智能日程"
+    },
+    {
+      "name": "read_calendar_reason",
+      "value": "读取日历权限用于检查现有日程"
+    },
+    {
+      "name": "write_calender_reason",
+      "value": "写入日历权限用于创建和修改日程"
+    },
+    {
+      "name": "internet_reason",
+      "value": "网络权限用于AI智能解析日程内容"
+    }
+  ]
+}

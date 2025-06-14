@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 主渐变背景 -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1976D2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 光晕效果 -->
+    <radialGradient id="glowGradient" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.2" />
+      <stop offset="70%" style="stop-color:#ffffff;stop-opacity:0.05" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 主背景圆角矩形 -->
+  <rect x="36" y="36" width="440" height="440" rx="88" ry="88" fill="url(#mainGradient)" stroke="none"/>
+  
+  <!-- 光晕效果 -->
+  <rect x="36" y="36" width="440" height="440" rx="88" ry="88" fill="url(#glowGradient)" stroke="none"/>
+  
+  <!-- 装饰性几何图案 -->
+  <rect x="56" y="56" width="400" height="400" rx="80" ry="80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <rect x="76" y="76" width="360" height="360" rx="72" ry="72" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+</svg> 
