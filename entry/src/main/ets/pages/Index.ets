@@ -54,9 +54,9 @@ struct Index {
       
       // 获取或创建日历账户
       const calendarAccount: calendarManager.CalendarAccount = {
-        name: 'MyCalendar',
+        name: 'AICalendar',
         type: calendarManager.CalendarType.LOCAL,
-        displayName: '我的日历账户'
+        displayName: 'AI日历'
       };
       
       try {
