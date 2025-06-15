@@ -4,6 +4,24 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { calendarManager } from '@kit.CalendarKit';
 import { promptAction } from '@kit.ArkUI';
 import { calendarMgr, mContext, AITextParser, AIConfig, ParsedEventData } from '../entryability/EntryAbility';
+import { preferences } from '@kit.ArkData';
+import { common } from '@kit.AbilityKit';
+
+// 默认账户配置类（与CalendarManager保持一致）
+class DefaultCalendarConfig {
+  private static readonly PREF_NAME: string = 'default_calendar_config';
+  private static readonly DEFAULT_CALENDAR_KEY: string = 'default_calendar_name';
+
+  static async getDefaultCalendar(context: common.UIAbilityContext): Promise<string> {
+    try {
+      const pref = await preferences.getPreferences(context, DefaultCalendarConfig.PREF_NAME);
+      return await pref.get(DefaultCalendarConfig.DEFAULT_CALENDAR_KEY, '') as string;
+    } catch (error) {
+      console.error('获取默认日历配置失败:', error);
+      return '';
+    }
+  }
+}
 
 @Entry
 @Component
@@ -12,6 +30,7 @@ struct Index {
   
   // 日历相关状态
   @State calendar: calendarManager.Calendar | undefined = undefined
+  @State defaultCalendarName: string = ''
   
   // 传统日程表单状态
   @State eventTitle: string = ''
@@ -52,27 +71,60 @@ struct Index {
         return;
       }
       
-      // 获取或创建日历账户
-      const calendarAccount: calendarManager.CalendarAccount = {
-        name: 'AICalendar',
-        type: calendarManager.CalendarType.LOCAL,
-        displayName: 'AI日历'
-      };
-      
-      try {
-        this.calendar = await calendarMgr.getCalendar(calendarAccount);
-        console.info('Calendar account already exists');
-      } catch (getError) {
-        this.calendar = await calendarMgr.createCalendar(calendarAccount);
-        const config: calendarManager.CalendarConfig = {
-          enableReminder: true,
-          color: '#4CAF50'
-        };
-        await this.calendar.setConfig(config);
-        console.info('Calendar account created successfully');
+      // 获取默认日历账户名称
+      if (mContext) {
+        this.defaultCalendarName = await DefaultCalendarConfig.getDefaultCalendar(mContext);
       }
       
-      console.info('Calendar initialized successfully');
+      if (!this.defaultCalendarName) {
+        // 如果没有设置默认账户，尝试获取第一个可用账户
+        try {
+          const allCalendars = await calendarMgr.getAllCalendars();
+          if (allCalendars.length > 0) {
+            const firstCalendar = allCalendars[0];
+            const account = firstCalendar.getAccount();
+            this.defaultCalendarName = account.name;
+            this.calendar = firstCalendar;
+            console.info('使用第一个可用日历账户:', this.defaultCalendarName);
+            return;
+          }
+        } catch (error) {
+          console.error('获取日历账户列表失败:', error);
+        }
+        
+        // 如果没有任何账户，提示用户去创建
+        promptAction.showToast({
+          message: '请先在日历账户管理中创建或设置默认账户',
+          duration: 3000
+        });
+        return;
+      }
+      
+      // 根据默认账户名称获取日历对象
+      try {
+        const allCalendars = await calendarMgr.getAllCalendars();
+        const targetCalendar = allCalendars.find(cal => {
+          const account = cal.getAccount();
+          return account.name === this.defaultCalendarName;
+        });
+        
+        if (targetCalendar) {
+          this.calendar = targetCalendar;
+          console.info('使用默认日历账户:', this.defaultCalendarName);
+        } else {
+          promptAction.showToast({
+            message: `默认日历账户"${this.defaultCalendarName}"不存在，请重新设置`,
+            duration: 3000
+          });
+        }
+      } catch (error) {
+        console.error('获取默认日历账户失败:', error);
+        promptAction.showToast({
+          message: '获取默认日历账户失败，请检查账户设置',
+          duration: 2000
+        });
+      }
+      
     } catch (err) {
       let code = (err as BusinessError).code;
       let message = (err as BusinessError).message;
@@ -209,6 +261,7 @@ struct Index {
   // 页面初始化时加载AI配置
   async aboutToAppear() {
     await this.loadAIConfig();
+    await this.initCalendar();
   }
 
   // 加载AI配置
@@ -371,6 +424,23 @@ struct Index {
           }
           .width('100%')
           .margin({ bottom: 20 })
+          
+          // 当前日历账户状态显示
+          if (this.defaultCalendarName) {
+            Row() {
+              Text('📅 当前日历: ')
+                .fontSize(14)
+                .fontColor($r('sys.color.ohos_id_color_text_secondary'))
+              
+              Text(this.defaultCalendarName)
+                .fontSize(14)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#4CAF50')
+            }
+            .width('100%')
+            .justifyContent(FlexAlign.Center)
+            .margin({ bottom: 16 })
+          }
           
           // AI解析区域
           if (!this.showTraditionalForm) {
